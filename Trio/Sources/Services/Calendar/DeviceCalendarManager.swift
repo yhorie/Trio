@@ -64,7 +64,6 @@ final class BaseDeviceCalendarManager: DeviceCalendarManager, Injectable {
     @Injected() private var deviceDataManager: DeviceDataManager!
     @Injected() private var fetchGlucoseManager: FetchGlucoseManager!
     @Injected() private var glucoseStorage: GlucoseStorage!
-    @Injected() private var calendarManager: CalendarManager!
 
     @Persisted(key: "DeviceCalendarManager.isEnabled") var isEnabled = false {
         didSet { resync() }
@@ -158,8 +157,19 @@ final class BaseDeviceCalendarManager: DeviceCalendarManager, Injectable {
 
     // MARK: - Calendar
 
+    /// Asks on this manager's own store: a store created before access was granted lists no
+    /// calendars or accounts until it is reset, so reset it once access is there.
     func requestAccess() async -> Bool {
-        await calendarManager.requestAccessIfNeeded()
+        if !hasFullAccess {
+            do {
+                guard try await eventStore.requestFullAccessToEvents() else { return false }
+            } catch {
+                warning(.service, "Device calendar: access not granted", error: error)
+                return false
+            }
+        }
+        eventStore.reset()
+        return true
     }
 
     func writableCalendars() -> [EKCalendar] {
