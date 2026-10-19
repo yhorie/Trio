@@ -15,6 +15,8 @@ final class ServiceAssembly: Assembly {
             return reporter
         }
         container.register(CalendarManager.self) { r in BaseCalendarManager(resolver: r) }
+        container.register(DeviceCalendarManager.self) { r in BaseDeviceCalendarManager(resolver: r) }
+            .inObjectScope(.container)
         container.register(HKHealthStore.self) { _ in HKHealthStore() }
         container.register(HealthKitManager.self) { r in BaseHealthKitManager(resolver: r) }
         container.register(TrioAlertManager.self) { r in BaseTrioAlertManager(resolver: r) }

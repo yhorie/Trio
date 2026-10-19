@@ -18,6 +18,12 @@ extension CalendarEventSettings {
 
         var body: some View {
             List {
+                Section {
+                    NavigationLink {
+                        DeviceCalendarSettingsView(manager: resolver.resolve(DeviceCalendarManager.self)!)
+                    } label: { Text(verbatim: "Device Change Events") }
+                }.listRowBackground(Color.chart)
+
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.useCalendar,
