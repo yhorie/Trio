@@ -35,10 +35,10 @@ enum DeviceCalendarEvent: String, CaseIterable, Codable {
 
     var title: String {
         switch self {
-        case .podExpires: return "Pod expires"
-        case .podStops: return "Pod stops insulin"
-        case .sensorExpires: return "CGM sensor expires"
-        case .sensorStops: return "CGM sensor stops"
+        case .podExpires: return "Pod expires (8 h grace period starts)"
+        case .podStops: return "Pod grace period ends: insulin stops"
+        case .sensorExpires: return "CGM sensor expires (grace period starts)"
+        case .sensorStops: return "CGM grace period ends: readings stop"
         }
     }
 
@@ -225,7 +225,7 @@ final class BaseDeviceCalendarManager: DeviceCalendarManager, Injectable {
 
         // Deleted by hand for the current device: respect that until the next device.
         if existing == nil, !dateChanged { return }
-        if existing != nil, !dateChanged, !force { return }
+        if let existing, !dateChanged, !force, existing.title == kind.title { return } // titles renamed in an update
 
         let event = existing ?? EKEvent(eventStore: eventStore)
         event.calendar = calendar
@@ -274,8 +274,8 @@ struct DeviceCalendarSettingsView: View {
                 Toggle(isOn: $isEnabled) { Text(verbatim: "Device Change Events") }
             } footer: {
                 Text(verbatim: """
-                Adds “Pod expires”, “Pod stops insulin”, “CGM sensor expires” and “CGM sensor stops” \
-                events, and moves them each time you start a new pod or sensor.
+                Adds events when the pod and CGM sensor expire and when their grace periods end, \
+                and moves them each time you start a new pod or sensor.
                 """)
             }.listRowBackground(Color.chart)
 
