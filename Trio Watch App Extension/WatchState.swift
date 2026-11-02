@@ -244,7 +244,9 @@ import WatchConnectivity
         // Wall-clock staleness gate. Drops the queued backlog cheaply when
         // the watch app wakes after long disuse; without it, every payload
         // schedules merge + UI work.
-        guard date >= Date().addingTimeInterval(-Self.maxAcceptableMessageAgeInMinutes) else {
+        // Compared as TimeInterval: Swift picks a weak-linked `Date.>=` that watchOS 27.2 beta
+        // (24S5091f) does not export, so calling it jumps to address 0 and kills the app.
+        guard timestamp >= Date().addingTimeInterval(-Self.maxAcceptableMessageAgeInMinutes).timeIntervalSince1970 else {
             Task { await WatchLogger.shared.log("⌚️ Skipping stale watch state (\(date))") }
             DispatchQueue.main.async { self.showSyncingAnimation = false }
             return

@@ -49,7 +49,9 @@ struct GlucoseChartView: View {
 
     private var filteredValues: [(date: Date, glucose: Double, color: Color)] {
         let cutoffDate = Date().addingTimeInterval(pastOffset)
-        return glucoseValues.filter { $0.date >= cutoffDate }
+        // Not `Date >=`: see WatchState.handleIncomingWatchStatePayload (missing on watchOS 27.2 beta).
+        let cutoff = cutoffDate.timeIntervalSince1970
+        return glucoseValues.filter { $0.date.timeIntervalSince1970 >= cutoff }
     }
 
     struct ForecastConePoint: Identifiable {
